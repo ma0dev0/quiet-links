@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiet Links</title>
+  <meta name="description" content="A minimal personal link dashboard">
+  <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="12" fill="%23101214"/%3E%3Ccircle cx="32" cy="32" r="10" fill="%235dd3b8"/%3E%3C/svg%3E'>
+  <link rel="preconnect" href="https://www.google.com">
+  <link rel="preconnect" href="https://unpkg.com">
+  <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js" defer></script>
+  <style>
+    :root {
+      --bg: #101214;
+      --panel: #181c20;
+      --panel-2: #20262b;
+      --text: #eef2f5;
+      --muted: #aab4be;
+      --line: #303841;
+      --accent: #5dd3b8;
+      --accent-2: #f3bd5b;
+      --danger: #ef6f6c;
+      --shadow: none;
+      color-scheme: dark;
+      font-family:
+        Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Noto Sans JP", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    .field input:focus-visible,
+    .field select:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--accent), transparent 38%);
+      outline-offset: 3px;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 0 16px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .clock {
+      min-width: 128px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      text-align: right;
+    }
+
+    .clock strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.1;
+    }
+
+    .clock span {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .icon-button,
+    .text-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .icon-button {
+      width: 40px;
+      padding: 0;
+    }
+
+    .text-button {
+      padding: 0 12px;
+    }
+
+    .icon-button:hover,
+    .text-button:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--accent), var(--line) 45%);
+      background: var(--panel-2);
+    }
+
+    .icon-button svg,
+    .text-button svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+
+    .search-panel {
+      display: grid;
+      align-content: center;
+      min-height: 104px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: min(720px, 100%);
+      min-height: 52px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--bg), var(--panel) 32%);
+    }
+
+    .search-box svg {
+      width: 20px;
+      height: 20px;
+      color: var(--muted);
+      flex: 0 0 auto;
+    }
+
+    .search-box input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .search-box input::placeholder {
+      color: var(--muted);
+    }
+
+    .search-box:focus-within {
+      border-color: var(--accent);
+      outline: 3px solid color-mix(in srgb, var(--accent), transparent 72%);
+      outline-offset: 3px;
+    }
+
+    .status-panel {
+      display: grid;
+      align-content: space-between;
+      gap: 12px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .metric {
+      display: grid;
+      gap: 3px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .metric strong {
+      font-size: 2.15rem;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .quick-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quick-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+      font-size: 0.86rem;
+    }
+
+    .quick-link img {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      padding: 8px 0 18px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+    }
+
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .tab[aria-pressed="true"] {
+      border-color: color-mix(in srgb, var(--accent), var(--line) 35%);
+      background: color-mix(in srgb, var(--accent), var(--panel) 86%);
+      color: var(--text);
+    }
+
+    .tab-count {
+      display: inline-grid;
+      min-width: 22px;
+      height: 22px;
+      place-items: center;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--bg), transparent 18%);
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .section {
+      margin: 6px 0 28px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0;
+    }
+
+    .section-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) 32px;
+      gap: 12px;
+      min-height: 116px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: none;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--accent), var(--line) 45%);
+      background: var(--panel-2);
+    }
+
+    .service-icon {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--bg), var(--panel) 54%);
+      overflow: hidden;
+    }
+
+    .service-icon img {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+    }
+
+    .card-body {
+      min-width: 0;
+    }
+
+    .card h3 {
+      margin: 1px 0 5px;
+      overflow: hidden;
+      font-size: 1rem;
+      line-height: 1.2;
+      letter-spacing: 0;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card p {
+      display: -webkit-box;
+      min-height: 2.4em;
+      margin: 0 0 11px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      max-width: 100%;
+      padding: 3px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.1;
+    }
+
+    .card-actions {
+      display: grid;
+      align-content: start;
+      gap: 6px;
+    }
+
+    .mini-button {
+      display: inline-grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--bg), var(--panel) 46%);
+      color: var(--muted);
+    }
+
+    .mini-button:hover,
+    .mini-button[aria-pressed="true"] {
+      border-color: color-mix(in srgb, var(--accent), var(--line) 35%);
+      color: var(--text);
+    }
+
+    .mini-button[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--accent-2), var(--panel) 82%);
+    }
+
+    .mini-button.danger:hover {
+      border-color: color-mix(in srgb, var(--danger), var(--line) 30%);
+      color: var(--danger);
+    }
+
+    .mini-button svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .empty {
+      display: none;
+      padding: 26px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--panel), transparent 30%);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty.is-visible {
+      display: block;
+    }
+
+    dialog {
+      width: min(560px, calc(100% - 26px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+    }
+
+    .dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .dialog-head h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .field input,
+    .field select {
+      min-height: 42px;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--bg), var(--panel) 34%);
+      color: var(--text);
+      padding: 0 11px;
+      outline: 0;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--accent);
+    }
+
+    .field input:user-invalid {
+      border-color: var(--danger);
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .primary {
+      border-color: color-mix(in srgb, var(--accent), var(--line) 30%);
+      background: var(--accent);
+      color: #07110f;
+      font-weight: 700;
+    }
+
+    .secondary {
+      background: transparent;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      .icon-button:hover,
+      .text-button:hover,
+      .card:hover {
+        transform: none;
+      }
+    }
+
+    @media (max-width: 850px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        justify-content: start;
+      }
+
+      .clock {
+        text-align: left;
+      }
+
+      .hero {
+        display: grid;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        width: min(100% - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      .search-panel {
+        min-height: 92px;
+        padding: 14px;
+      }
+
+      .status-panel {
+        padding: 14px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        min-height: 108px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="toolbar">
+        <div class="clock" aria-live="polite">
+          <strong id="clockTime">--:--</strong>
+          <span id="clockDate">----/--/--</span>
+        </div>
+        <button class="text-button" id="addButton" type="button">
+          <i data-lucide="plus"></i>
+          追加
+        </button>
+      </div>
+    </header>
+
+    <section class="hero" aria-label="検索">
+      <div class="search-panel">
+        <label class="search-box">
+          <i data-lucide="search"></i>
+          <span class="visually-hidden">検索キーワード</span>
+          <input id="searchInput" autocomplete="off" type="search" placeholder="サービス名・カテゴリ・タグで検索">
+        </label>
+      </div>
+
+      <aside class="status-panel" aria-label="固定リンク">
+        <div class="metric">
+          <span>表示中</span>
+          <strong id="visibleCount">0</strong>
+        </div>
+        <div class="metric">
+          <span>お気に入り</span>
+          <strong id="favoriteCount">0</strong>
+        </div>
+        <div class="quick-row" id="quickRow"></div>
+      </aside>
+    </section>
+
+    <nav class="tabs" id="tabs" aria-label="カテゴリ"></nav>
+    <div id="sections"></div>
+    <p class="empty" id="emptyState">一致するリンクがありません。</p>
+  </main>
+
+  <dialog id="linkDialog">
+    <form method="dialog" id="linkForm">
+      <div class="dialog-head">
+        <h2>リンクを追加</h2>
+        <button class="icon-button" type="button" id="closeDialogButton" title="閉じる" aria-label="閉じる">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="form-grid">
+        <label class="field">
+          <span>名前</span>
+          <input id="nameField" required autocomplete="off" placeholder="例: 社内Wiki">
+        </label>
+        <label class="field">
+          <span>URL</span>
+          <input id="urlField" required inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://example.com">
+        </label>
+        <label class="field">
+          <span>説明</span>
+          <input id="descriptionField" placeholder="例: 手順書や議事録">
+        </label>
+        <label class="field">
+          <span>カテゴリ</span>
+          <select id="categoryField"></select>
+        </label>
+        <label class="field">
+          <span>タグ</span>
+          <input id="tagsField" placeholder="例: work, docs">
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button class="text-button secondary" type="button" id="cancelDialogButton">キャンセル</button>
+        <button class="text-button primary" type="submit">
+          <i data-lucide="save"></i>
+          保存
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="cardTemplate">
+    <article class="card">
+      <a class="service-icon" target="_blank" rel="noopener noreferrer"></a>
+      <div class="card-body">
+        <a class="card-link" target="_blank" rel="noopener noreferrer">
+          <h3></h3>
+          <p></p>
+        </a>
+        <div class="tag-row"></div>
+      </div>
+      <div class="card-actions">
+        <button class="mini-button favorite-button" type="button" title="お気に入り" aria-label="お気に入り">
+          <i data-lucide="star"></i>
+        </button>
+        <a class="mini-button open-button" target="_blank" rel="noopener noreferrer" title="開く" aria-label="開く">
+          <i data-lucide="external-link"></i>
+        </a>
+        <button class="mini-button danger delete-button" type="button" title="削除" aria-label="削除">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const defaultServices = [
+      {
+        id: "chatgpt",
+        name: "ChatGPT",
+        url: "https://chat.openai.com/",
+        description: "調べもの、文章作成、アイデア出し",
+        category: "AI",
+        tags: ["ai", "write", "chat"],
+        favorite: true
+      },
+      {
+        id: "claude",
+        name: "Claude",
+        url: "https://claude.ai/",
+        description: "長文整理、レビュー、壁打ち",
+        category: "AI",
+        tags: ["ai", "docs"],
+        favorite: true
+      },
+      {
+        id: "perplexity",
+        name: "Perplexity",
+        url: "https://www.perplexity.ai/",
+        description: "出典つき検索と要約",
+        category: "AI",
+        tags: ["search", "research"]
+      },
+      {
+        id: "gmail",
+        name: "Gmail",
+        url: "https://mail.google.com/",
+        description: "メール確認と返信",
+        category: "仕事",
+        tags: ["mail", "google"],
+        favorite: true
+      },
+      {
+        id: "calendar",
+        name: "Google Calendar",
+        url: "https://calendar.google.com/",
+        description: "予定、会議、リマインダー",
+        category: "仕事",
+        tags: ["calendar", "google"],
+        favorite: true
+      },
+      {
+        id: "drive",
+        name: "Google Drive",
+        url: "https://drive.google.com/",
+        description: "資料、共有ファイル、バックアップ",
+        category: "仕事",
+        tags: ["files", "google"]
+      },
+      {
+        id: "notion",
+        name: "Notion",
+        url: "https://www.notion.so/",
+        description: "メモ、タスク、データベース",
+        category: "仕事",
+        tags: ["notes", "tasks"]
+      },
+      {
+        id: "github",
+        name: "GitHub",
+        url: "https://github.com/",
+        description: "コード、Issue、Pull Request",
+        category: "開発",
+        tags: ["code", "git", "repo"],
+        favorite: true
+      },
+      {
+        id: "vercel",
+        name: "Vercel",
+        url: "https://vercel.com/dashboard",
+        description: "Webアプリのデプロイ管理",
+        category: "開発",
+        tags: ["deploy", "frontend"]
+      },
+      {
+        id: "mdn",
+        name: "MDN",
+        url: "https://developer.mozilla.org/ja/",
+        description: "HTML、CSS、JavaScriptの公式系リファレンス",
+        category: "開発",
+        tags: ["docs", "web"]
+      },
+      {
+        id: "youtube",
+        name: "YouTube",
+        url: "https://www.youtube.com/",
+        description: "動画、学習、音楽",
+        category: "日常",
+        tags: ["video", "music"]
+      },
+      {
+        id: "maps",
+        name: "Google Maps",
+        url: "https://www.google.com/maps",
+        description: "移動、周辺検索、経路確認",
+        category: "日常",
+        tags: ["map", "travel"]
+      },
+      {
+        id: "amazon",
+        name: "Amazon",
+        url: "https://www.amazon.co.jp/",
+        description: "買い物、注文履歴、配送確認",
+        category: "買い物",
+        tags: ["shopping"]
+      },
+      {
+        id: "rakuten",
+        name: "楽天市場",
+        url: "https://www.rakuten.co.jp/",
+        description: "買い物、ポイント、セール確認",
+        category: "買い物",
+        tags: ["shopping", "points"]
+      }
+    ];
+
+    const storageKey = "home-portal-services-v1";
+    const sectionsEl = document.querySelector("#sections");
+    const tabsEl = document.querySelector("#tabs");
+    const quickRowEl = document.querySelector("#quickRow");
+    const searchInput = document.querySelector("#searchInput");
+    const visibleCountEl = document.querySelector("#visibleCount");
+    const favoriteCountEl = document.querySelector("#favoriteCount");
+    const emptyStateEl = document.querySelector("#emptyState");
+    const cardTemplate = document.querySelector("#cardTemplate");
+    const dialog = document.querySelector("#linkDialog");
+    const form = document.querySelector("#linkForm");
+    const categoryField = document.querySelector("#categoryField");
+    const nameField = document.querySelector("#nameField");
+    const urlField = document.querySelector("#urlField");
+    const descriptionField = document.querySelector("#descriptionField");
+    const tagsField = document.querySelector("#tagsField");
+    const addButton = document.querySelector("#addButton");
+    const closeDialogButton = document.querySelector("#closeDialogButton");
+    const cancelDialogButton = document.querySelector("#cancelDialogButton");
+
+    let services = loadServices();
+    let activeCategory = "すべて";
+
+    render();
+    updateClock();
+    setInterval(updateClock, 1000 * 30);
+
+    searchInput.addEventListener("input", render);
+    addButton.addEventListener("click", openDialog);
+    closeDialogButton.addEventListener("click", () => dialog.close());
+    cancelDialogButton.addEventListener("click", () => dialog.close());
+    urlField.addEventListener("input", () => urlField.setCustomValidity(""));
+    urlField.addEventListener("blur", () => {
+      const url = normalizeUrl(urlField.value);
+      if (url) urlField.value = url;
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const url = normalizeUrl(urlField.value);
+      if (!url) {
+        urlField.setCustomValidity("http:// または https:// で開けるURLを入力してください。");
+        urlField.reportValidity();
+        return;
+      }
+
+      const service = {
+        id: createServiceId(),
+        name: nameField.value.trim(),
+        url,
+        description: descriptionField.value.trim(),
+        category: categoryField.value || "未分類",
+        tags: splitTags(tagsField.value),
+        custom: true,
+        favorite: false
+      };
+
+      services = sanitizeServices([service, ...services]);
+      saveServices();
+      form.reset();
+      dialog.close();
+      activeCategory = service.category;
+      render();
+    });
+
+    function loadServices() {
+      try {
+        const stored = JSON.parse(readStorage(storageKey));
+        if (Array.isArray(stored)) return sanitizeServices(stored);
+      } catch {
+        // 壊れた保存データは無視して初期リンクを表示します。
+      }
+      return sanitizeServices(defaultServices);
+    }
+
+    function saveServices() {
+      services = sanitizeServices(services);
+      writeStorage(storageKey, JSON.stringify(services));
+    }
+
+    function readStorage(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch {
+        return null;
+      }
+    }
+
+    function writeStorage(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch {
+        // 保存できない環境でも画面操作は続けられるようにします。
+      }
+    }
+
+    function sanitizeServices(items) {
+      const usedIds = new Set();
+      return items
+        .map((item, index) => sanitizeService(item, index))
+        .filter(Boolean)
+        .map((service) => {
+          const baseId = service.id;
+          let id = baseId;
+          let suffix = 2;
+          while (usedIds.has(id)) {
+            id = `${baseId}-${suffix}`;
+            suffix += 1;
+          }
+          usedIds.add(id);
+          return { ...service, id };
+        });
+    }
+
+    function sanitizeService(item, index) {
+      if (!item || typeof item !== "object") return null;
+
+      const url = normalizeUrl(item.url);
+      if (!url) return null;
+
+      const hostname = getHostname(url);
+      const service = {
+        id: cleanText(item.id, 80) || `service-${index}`,
+        name: cleanText(item.name, 80) || hostname || "名称未設定",
+        url,
+        description: cleanText(item.description, 160),
+        category: cleanText(item.category, 40) || "未分類",
+        tags: Array.isArray(item.tags)
+          ? item.tags.map((tag) => cleanText(tag, 32)).filter(Boolean).slice(0, 8)
+          : [],
+        favorite: item.favorite === true
+      };
+
+      if (item.custom === true) service.custom = true;
+      return service;
+    }
+
+    function cleanText(value, maxLength) {
+      if (value == null) return "";
+      return String(value).replace(/\s+/g, " ").trim().slice(0, maxLength);
+    }
+
+    function createServiceId() {
+      if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+        return `custom-${globalThis.crypto.randomUUID()}`;
+      }
+      return `custom-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    function render() {
+      const query = searchInput.value.trim().toLowerCase();
+      const categories = getCategories();
+      if (!categories.includes(activeCategory)) activeCategory = "すべて";
+
+      renderTabs(categories);
+      renderQuickLinks();
+      renderCategoryOptions(categories);
+
+      const filtered = services.filter((service) => {
+        const categoryMatch = activeCategory === "すべて" || service.category === activeCategory;
+        const haystack = [
+          service.name,
+          service.description,
+          service.category,
+          ...(service.tags || [])
+        ].join(" ").toLowerCase();
+        return categoryMatch && haystack.includes(query);
+      });
+
+      const grouped = groupByCategory(filtered);
+      sectionsEl.replaceChildren();
+
+      grouped.forEach(([category, items]) => {
+        const section = document.createElement("section");
+        section.className = "section";
+
+        const sectionHead = document.createElement("div");
+        sectionHead.className = "section-head";
+        const titleGroup = document.createElement("div");
+        const sectionTitle = document.createElement("h2");
+        sectionTitle.className = "section-title";
+        sectionTitle.textContent = category;
+        const sectionSubtitle = document.createElement("p");
+        sectionSubtitle.className = "section-subtitle";
+        sectionSubtitle.textContent = `${items.length}件`;
+        titleGroup.append(sectionTitle, sectionSubtitle);
+        sectionHead.append(titleGroup);
+
+        const grid = document.createElement("div");
+        grid.className = "grid";
+        items.forEach((service) => grid.append(createCard(service)));
+        section.append(sectionHead, grid);
+        sectionsEl.append(section);
+      });
+
+      visibleCountEl.textContent = String(filtered.length);
+      favoriteCountEl.textContent = String(services.filter((service) => service.favorite).length);
+      emptyStateEl.classList.toggle("is-visible", filtered.length === 0);
+      refreshIcons();
+    }
+
+    function createCard(service) {
+      const node = cardTemplate.content.firstElementChild.cloneNode(true);
+      const hostname = getHostname(service.url);
+      const iconLink = node.querySelector(".service-icon");
+      const cardLink = node.querySelector(".card-link");
+      const openButton = node.querySelector(".open-button");
+      const favoriteButton = node.querySelector(".favorite-button");
+      const deleteButton = node.querySelector(".delete-button");
+
+      iconLink.href = service.url;
+      iconLink.setAttribute("aria-label", `${service.name}を開く`);
+      iconLink.replaceChildren(createFaviconImage(hostname, 64));
+      cardLink.href = service.url;
+      cardLink.setAttribute("aria-label", `${service.name}を開く`);
+      openButton.href = service.url;
+      openButton.setAttribute("aria-label", `${service.name}を開く`);
+      node.querySelector("h3").textContent = service.name;
+      node.querySelector("p").textContent = service.description || hostname;
+      favoriteButton.setAttribute("aria-pressed", service.favorite ? "true" : "false");
+      favoriteButton.setAttribute(
+        "aria-label",
+        service.favorite ? `${service.name}のお気に入りを解除` : `${service.name}をお気に入りに追加`
+      );
+      deleteButton.hidden = !service.custom;
+      deleteButton.setAttribute("aria-label", `${service.name}を削除`);
+
+      const tagRow = node.querySelector(".tag-row");
+      [hostname, ...(service.tags || [])].slice(0, 4).forEach((tag) => {
+        const tagEl = document.createElement("span");
+        tagEl.className = "tag";
+        tagEl.textContent = tag;
+        tagRow.append(tagEl);
+      });
+
+      favoriteButton.addEventListener("click", () => {
+        services = services.map((item) => item.id === service.id ? { ...item, favorite: !item.favorite } : item);
+        saveServices();
+        render();
+      });
+
+      deleteButton.addEventListener("click", () => {
+        services = services.filter((item) => item.id !== service.id);
+        saveServices();
+        render();
+      });
+
+      return node;
+    }
+
+    function createFaviconImage(hostname, size) {
+      const img = document.createElement("img");
+      img.alt = "";
+      img.decoding = "async";
+      img.loading = "lazy";
+      img.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=${size}`;
+      return img;
+    }
+
+    function renderTabs(categories) {
+      tabsEl.replaceChildren();
+      categories.forEach((category) => {
+        const count = category === "すべて"
+          ? services.length
+          : services.filter((service) => service.category === category).length;
+        const button = document.createElement("button");
+        button.className = "tab";
+        button.type = "button";
+        button.setAttribute("aria-pressed", String(activeCategory === category));
+        const label = document.createElement("span");
+        label.textContent = category;
+        const countEl = document.createElement("span");
+        countEl.className = "tab-count";
+        countEl.textContent = String(count);
+        button.append(label, countEl);
+        button.addEventListener("click", () => {
+          activeCategory = category;
+          render();
+        });
+        tabsEl.append(button);
+      });
+    }
+
+    function renderQuickLinks() {
+      quickRowEl.replaceChildren();
+      services
+        .filter((service) => service.favorite)
+        .slice(0, 6)
+        .forEach((service) => {
+          const hostname = getHostname(service.url);
+          const link = document.createElement("a");
+          link.className = "quick-link";
+          link.href = service.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.setAttribute("aria-label", `${service.name}を開く`);
+          const img = createFaviconImage(hostname, 32);
+          const label = document.createElement("span");
+          label.textContent = service.name;
+          link.append(img, label);
+          quickRowEl.append(link);
+        });
+    }
+
+    function renderCategoryOptions(categories) {
+      const current = categoryField.value;
+      const categoryOptions = categories.filter((category) => category !== "すべて");
+      categoryField.replaceChildren();
+      (categoryOptions.length > 0 ? categoryOptions : ["未分類"]).forEach((category) => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryField.append(option);
+      });
+
+      if ([...categoryField.options].some((option) => option.value === current)) {
+        categoryField.value = current;
+      }
+    }
+
+    function getCategories() {
+      return ["すべて", ...new Set(services.map((service) => service.category).filter(Boolean))];
+    }
+
+    function groupByCategory(items) {
+      return getCategories()
+        .filter((category) => category !== "すべて")
+        .map((category) => [category, items.filter((service) => service.category === category)])
+        .filter(([, group]) => group.length > 0);
+    }
+
+    function openDialog() {
+      form.reset();
+      urlField.setCustomValidity("");
+      const hasWorkCategory = [...categoryField.options].some((option) => option.value === "仕事");
+      const firstCategory = categoryField.options[0] ? categoryField.options[0].value : "未分類";
+      const fallbackCategory = hasWorkCategory ? "仕事" : firstCategory;
+      categoryField.value = activeCategory === "すべて" ? fallbackCategory : activeCategory;
+      dialog.showModal();
+      nameField.focus();
+    }
+
+    function getHostname(url) {
+      try {
+        return new URL(url).hostname;
+      } catch {
+        return "";
+      }
+    }
+
+    function normalizeUrl(url) {
+      const trimmed = cleanText(url, 2048);
+      if (!trimmed) return "";
+
+      const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+      try {
+        const parsed = new URL(candidate);
+        if (!["http:", "https:"].includes(parsed.protocol) || !parsed.hostname) return "";
+        return parsed.href;
+      } catch {
+        return "";
+      }
+    }
+
+    function splitTags(value) {
+      return value
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      document.querySelector("#clockTime").textContent = new Intl.DateTimeFormat("ja-JP", {
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(now);
+      document.querySelector("#clockDate").textContent = new Intl.DateTimeFormat("ja-JP", {
+        month: "long",
+        day: "numeric",
+        weekday: "short"
+      }).format(now);
+    }
+
+    function refreshIcons() {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    }
+
+    window.addEventListener("load", refreshIcons);
+  </script>
+</body>
+</html>
