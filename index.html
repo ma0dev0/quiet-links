@@ -325,14 +325,14 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 12px;
     }
 
     .card {
       position: relative;
       display: grid;
-      grid-template-columns: 44px minmax(0, 1fr) 32px;
+      grid-template-columns: 44px minmax(0, 1fr) 70px;
       gap: 12px;
       min-height: 116px;
       padding: 14px;
@@ -410,6 +410,7 @@
 
     .card-actions {
       display: grid;
+      grid-template-columns: repeat(2, 32px);
       align-content: start;
       gap: 6px;
     }
@@ -429,6 +430,11 @@
     .mini-button[aria-pressed="true"] {
       border-color: color-mix(in srgb, var(--accent), var(--line) 35%);
       color: var(--text);
+    }
+
+    .mini-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.35;
     }
 
     .mini-button[aria-pressed="true"] {
@@ -540,6 +546,33 @@
       background: transparent;
     }
 
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: min(420px, calc(100% - 32px));
+      padding: 10px 10px 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    .toast[hidden] {
+      display: none;
+    }
+
+    .toast span {
+      min-width: 0;
+      flex: 1;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *,
       *::before,
@@ -597,6 +630,12 @@
       .card {
         min-height: 108px;
       }
+
+      .toast {
+        right: 10px;
+        bottom: 10px;
+        width: calc(100% - 20px);
+      }
     }
   </style>
 </head>
@@ -608,10 +647,17 @@
           <strong id="clockTime">--:--</strong>
           <span id="clockDate">----/--/--</span>
         </div>
+        <button class="icon-button" id="importButton" type="button" title="インポート" aria-label="インポート">
+          <i data-lucide="upload"></i>
+        </button>
+        <button class="icon-button" id="exportButton" type="button" title="エクスポート" aria-label="エクスポート">
+          <i data-lucide="download"></i>
+        </button>
         <button class="text-button" id="addButton" type="button">
           <i data-lucide="plus"></i>
           追加
         </button>
+        <input class="visually-hidden" id="importFile" type="file" accept="application/json,.json">
       </div>
     </header>
 
@@ -645,7 +691,7 @@
   <dialog id="linkDialog">
     <form method="dialog" id="linkForm">
       <div class="dialog-head">
-        <h2>リンクを追加</h2>
+        <h2 id="linkDialogTitle">リンクを追加</h2>
         <button class="icon-button" type="button" id="closeDialogButton" title="閉じる" aria-label="閉じる">
           <i data-lucide="x"></i>
         </button>
@@ -665,7 +711,8 @@
         </label>
         <label class="field">
           <span>カテゴリ</span>
-          <select id="categoryField"></select>
+          <input id="categoryField" list="categoryOptions" autocomplete="off" placeholder="例: 仕事">
+          <datalist id="categoryOptions"></datalist>
         </label>
         <label class="field">
           <span>タグ</span>
@@ -676,7 +723,7 @@
         <button class="text-button secondary" type="button" id="cancelDialogButton">キャンセル</button>
         <button class="text-button primary" type="submit">
           <i data-lucide="save"></i>
-          保存
+          <span id="submitLabel">保存</span>
         </button>
       </div>
     </form>
@@ -696,6 +743,15 @@
         <button class="mini-button favorite-button" type="button" title="お気に入り" aria-label="お気に入り">
           <i data-lucide="star"></i>
         </button>
+        <button class="mini-button move-up-button" type="button" title="上へ移動" aria-label="上へ移動">
+          <i data-lucide="chevron-up"></i>
+        </button>
+        <button class="mini-button edit-button" type="button" title="編集" aria-label="編集">
+          <i data-lucide="pencil"></i>
+        </button>
+        <button class="mini-button move-down-button" type="button" title="下へ移動" aria-label="下へ移動">
+          <i data-lucide="chevron-down"></i>
+        </button>
         <a class="mini-button open-button" target="_blank" rel="noopener noreferrer" title="開く" aria-label="開く">
           <i data-lucide="external-link"></i>
         </a>
@@ -705,6 +761,11 @@
       </div>
     </article>
   </template>
+
+  <div class="toast" id="undoToast" role="status" aria-live="polite" hidden>
+    <span id="undoMessage">リンクを削除しました。</span>
+    <button class="text-button secondary" id="undoButton" type="button">元に戻す</button>
+  </div>
 
   <script>
     const defaultServices = [
@@ -838,26 +899,43 @@
     const cardTemplate = document.querySelector("#cardTemplate");
     const dialog = document.querySelector("#linkDialog");
     const form = document.querySelector("#linkForm");
+    const dialogTitle = document.querySelector("#linkDialogTitle");
     const categoryField = document.querySelector("#categoryField");
+    const categoryOptionsEl = document.querySelector("#categoryOptions");
     const nameField = document.querySelector("#nameField");
     const urlField = document.querySelector("#urlField");
     const descriptionField = document.querySelector("#descriptionField");
     const tagsField = document.querySelector("#tagsField");
+    const submitLabel = document.querySelector("#submitLabel");
     const addButton = document.querySelector("#addButton");
+    const importButton = document.querySelector("#importButton");
+    const exportButton = document.querySelector("#exportButton");
+    const importFile = document.querySelector("#importFile");
     const closeDialogButton = document.querySelector("#closeDialogButton");
     const cancelDialogButton = document.querySelector("#cancelDialogButton");
+    const undoToast = document.querySelector("#undoToast");
+    const undoMessage = document.querySelector("#undoMessage");
+    const undoButton = document.querySelector("#undoButton");
 
     let services = loadServices();
     let activeCategory = "すべて";
+    let editingServiceId = null;
+    let pendingDelete = null;
+    let undoTimer = null;
 
     render();
     updateClock();
     setInterval(updateClock, 1000 * 30);
 
     searchInput.addEventListener("input", render);
-    addButton.addEventListener("click", openDialog);
+    addButton.addEventListener("click", () => openDialog());
+    exportButton.addEventListener("click", exportServices);
+    importButton.addEventListener("click", () => importFile.click());
+    importFile.addEventListener("change", importServices);
+    undoButton.addEventListener("click", restoreDeletedService);
     closeDialogButton.addEventListener("click", () => dialog.close());
     cancelDialogButton.addEventListener("click", () => dialog.close());
+    document.addEventListener("keydown", handleGlobalKeydown);
     urlField.addEventListener("input", () => urlField.setCustomValidity(""));
     urlField.addEventListener("blur", () => {
       const url = normalizeUrl(urlField.value);
@@ -873,21 +951,28 @@
         return;
       }
 
+      const currentService = editingServiceId
+        ? services.find((item) => item.id === editingServiceId)
+        : null;
+      const category = cleanText(categoryField.value, 40) || "未分類";
       const service = {
-        id: createServiceId(),
+        id: editingServiceId || createServiceId(),
         name: nameField.value.trim(),
         url,
         description: descriptionField.value.trim(),
-        category: categoryField.value || "未分類",
+        category,
         tags: splitTags(tagsField.value),
-        custom: true,
-        favorite: false
+        custom: currentService ? currentService.custom === true : true,
+        favorite: currentService ? currentService.favorite === true : false
       };
 
-      services = sanitizeServices([service, ...services]);
+      services = editingServiceId
+        ? sanitizeServices(services.map((item) => item.id === editingServiceId ? service : item))
+        : sanitizeServices([service, ...services]);
       saveServices();
       form.reset();
       dialog.close();
+      editingServiceId = null;
       activeCategory = service.category;
       render();
     });
@@ -1035,6 +1120,7 @@
       const cardLink = node.querySelector(".card-link");
       const openButton = node.querySelector(".open-button");
       const favoriteButton = node.querySelector(".favorite-button");
+      const editButton = node.querySelector(".edit-button");
       const deleteButton = node.querySelector(".delete-button");
 
       iconLink.href = service.url;
@@ -1051,6 +1137,7 @@
         "aria-label",
         service.favorite ? `${service.name}のお気に入りを解除` : `${service.name}をお気に入りに追加`
       );
+      editButton.setAttribute("aria-label", `${service.name}を編集`);
       deleteButton.hidden = !service.custom;
       deleteButton.setAttribute("aria-label", `${service.name}を削除`);
 
@@ -1062,19 +1149,148 @@
         tagRow.append(tagEl);
       });
 
+      const position = getCategoryPosition(service);
       favoriteButton.addEventListener("click", () => {
         services = services.map((item) => item.id === service.id ? { ...item, favorite: !item.favorite } : item);
         saveServices();
         render();
       });
 
+      editButton.addEventListener("click", () => openDialog(service));
+
+      const moveUpButton = node.querySelector(".move-up-button");
+      const moveDownButton = node.querySelector(".move-down-button");
+      moveUpButton.disabled = position.index <= 0;
+      moveDownButton.disabled = position.index === -1 || position.index >= position.total - 1;
+      moveUpButton.setAttribute("aria-label", `${service.name}を上へ移動`);
+      moveDownButton.setAttribute("aria-label", `${service.name}を下へ移動`);
+      moveUpButton.addEventListener("click", () => moveService(service.id, -1));
+      moveDownButton.addEventListener("click", () => moveService(service.id, 1));
+
       deleteButton.addEventListener("click", () => {
-        services = services.filter((item) => item.id !== service.id);
-        saveServices();
-        render();
+        deleteService(service);
       });
 
       return node;
+    }
+
+    function deleteService(service) {
+      const index = services.findIndex((item) => item.id === service.id);
+      if (index < 0) return;
+
+      pendingDelete = { service: services[index], index };
+      services = services.filter((item) => item.id !== service.id);
+      saveServices();
+      render();
+      showUndoToast(service.name);
+    }
+
+    function showUndoToast(name) {
+      if (undoTimer) clearTimeout(undoTimer);
+      undoMessage.textContent = `${name}を削除しました。`;
+      undoToast.hidden = false;
+      undoTimer = setTimeout(clearUndo, 6000);
+    }
+
+    function restoreDeletedService() {
+      if (!pendingDelete) return;
+
+      const restored = pendingDelete.service;
+      const next = services.slice();
+      next.splice(Math.min(pendingDelete.index, next.length), 0, restored);
+      services = sanitizeServices(next);
+      saveServices();
+      activeCategory = restored.category;
+      clearUndo();
+      render();
+    }
+
+    function clearUndo() {
+      pendingDelete = null;
+      if (undoTimer) clearTimeout(undoTimer);
+      undoTimer = null;
+      undoToast.hidden = true;
+    }
+
+    function getCategoryPosition(service) {
+      const peers = services.filter((item) => item.category === service.category);
+      return {
+        index: peers.findIndex((item) => item.id === service.id),
+        total: peers.length
+      };
+    }
+
+    function moveService(id, direction) {
+      const currentIndex = services.findIndex((service) => service.id === id);
+      if (currentIndex < 0) return;
+
+      const current = services[currentIndex];
+      const peers = services.filter((service) => service.category === current.category);
+      const peerIndex = peers.findIndex((service) => service.id === id);
+      const targetPeer = peers[peerIndex + direction];
+      if (!targetPeer) return;
+
+      const targetIndex = services.findIndex((service) => service.id === targetPeer.id);
+      const next = services.slice();
+      [next[currentIndex], next[targetIndex]] = [next[targetIndex], next[currentIndex]];
+      services = next;
+      saveServices();
+      render();
+    }
+
+    function exportServices() {
+      const data = {
+        app: "Quiet Links",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        services: sanitizeServices(services)
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `quiet-links-${formatDateForFile(new Date())}.json`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+
+    async function importServices() {
+      const file = importFile.files && importFile.files[0];
+      if (!file) return;
+
+      try {
+        const data = JSON.parse(await file.text());
+        const imported = getImportedServices(data);
+        const nextServices = sanitizeServices(imported);
+        if (nextServices.length === 0) throw new Error("No services");
+        if (!confirm("現在のリンク一覧をインポート内容で置き換えます。")) return;
+
+        services = nextServices;
+        saveServices();
+        clearUndo();
+        searchInput.value = "";
+        activeCategory = "すべて";
+        render();
+      } catch {
+        alert("読み込めるリンクデータではありません。");
+      } finally {
+        importFile.value = "";
+      }
+    }
+
+    function getImportedServices(data) {
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.services)) return data.services;
+      return [];
+    }
+
+    function formatDateForFile(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}${month}${day}`;
     }
 
     function createFaviconImage(hostname, size) {
@@ -1134,17 +1350,15 @@
     function renderCategoryOptions(categories) {
       const current = categoryField.value;
       const categoryOptions = categories.filter((category) => category !== "すべて");
-      categoryField.replaceChildren();
+      categoryOptionsEl.replaceChildren();
       (categoryOptions.length > 0 ? categoryOptions : ["未分類"]).forEach((category) => {
         const option = document.createElement("option");
         option.value = category;
         option.textContent = category;
-        categoryField.append(option);
+        categoryOptionsEl.append(option);
       });
 
-      if ([...categoryField.options].some((option) => option.value === current)) {
-        categoryField.value = current;
-      }
+      categoryField.value = current;
     }
 
     function getCategories() {
@@ -1158,15 +1372,47 @@
         .filter(([, group]) => group.length > 0);
     }
 
-    function openDialog() {
+    function openDialog(service = null) {
       form.reset();
       urlField.setCustomValidity("");
-      const hasWorkCategory = [...categoryField.options].some((option) => option.value === "仕事");
-      const firstCategory = categoryField.options[0] ? categoryField.options[0].value : "未分類";
-      const fallbackCategory = hasWorkCategory ? "仕事" : firstCategory;
-      categoryField.value = activeCategory === "すべて" ? fallbackCategory : activeCategory;
+      editingServiceId = service ? service.id : null;
+      dialogTitle.textContent = service ? "リンクを編集" : "リンクを追加";
+      submitLabel.textContent = service ? "更新" : "保存";
+
+      if (service) {
+        nameField.value = service.name;
+        urlField.value = service.url;
+        descriptionField.value = service.description;
+        categoryField.value = service.category;
+        tagsField.value = (service.tags || []).join(", ");
+      } else {
+        const categories = getCategories().filter((category) => category !== "すべて");
+        const fallbackCategory = categories.includes("仕事") ? "仕事" : categories[0] || "未分類";
+        categoryField.value = activeCategory === "すべて" ? fallbackCategory : activeCategory;
+      }
+
       dialog.showModal();
       nameField.focus();
+    }
+
+    function handleGlobalKeydown(event) {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+
+      const target = event.target;
+      const isTyping = target instanceof HTMLElement
+        && ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName);
+
+      if (event.key === "/" && !isTyping && !dialog.open) {
+        event.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+        return;
+      }
+
+      if (event.key === "Escape" && document.activeElement === searchInput && searchInput.value) {
+        searchInput.value = "";
+        render();
+      }
     }
 
     function getHostname(url) {
