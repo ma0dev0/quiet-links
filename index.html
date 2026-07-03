@@ -505,6 +505,13 @@
       font-size: 1.1rem;
     }
 
+    .dialog-copy {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
     .form-grid {
       display: grid;
       gap: 12px;
@@ -742,6 +749,44 @@
     </form>
   </dialog>
 
+  <dialog id="categoryDialog">
+    <form method="dialog" id="categoryForm">
+      <div class="dialog-head">
+        <h2>カテゴリ名を変更</h2>
+        <button class="icon-button" type="button" id="closeCategoryDialogButton" title="閉じる" aria-label="閉じる">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <label class="field">
+        <span>カテゴリ名</span>
+        <input id="categoryNameField" required autocomplete="off" maxlength="40" placeholder="例: 仕事">
+      </label>
+      <div class="dialog-actions">
+        <button class="text-button secondary" type="button" id="cancelCategoryDialogButton">キャンセル</button>
+        <button class="text-button primary" type="submit">
+          <i data-lucide="save"></i>
+          変更
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirmDialog">
+    <form method="dialog" id="confirmForm">
+      <div class="dialog-head">
+        <h2 id="confirmTitle">確認</h2>
+        <button class="icon-button" type="button" id="closeConfirmDialogButton" title="閉じる" aria-label="閉じる">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <p class="dialog-copy" id="confirmMessage"></p>
+      <div class="dialog-actions">
+        <button class="text-button secondary" type="button" id="cancelConfirmDialogButton">キャンセル</button>
+        <button class="text-button primary" type="submit" id="confirmSubmitButton">実行</button>
+      </div>
+    </form>
+  </dialog>
+
   <template id="cardTemplate">
     <article class="card">
       <a class="service-icon" target="_blank" rel="noopener noreferrer"></a>
@@ -778,6 +823,10 @@
   <div class="toast" id="undoToast" role="status" aria-live="polite" hidden>
     <span id="undoMessage">リンクを削除しました。</span>
     <button class="text-button secondary" id="undoButton" type="button">元に戻す</button>
+  </div>
+
+  <div class="toast" id="noticeToast" role="status" aria-live="polite" hidden>
+    <span id="noticeMessage"></span>
   </div>
 
   <script>
@@ -913,6 +962,18 @@
     const dialog = document.querySelector("#linkDialog");
     const form = document.querySelector("#linkForm");
     const dialogTitle = document.querySelector("#linkDialogTitle");
+    const categoryDialog = document.querySelector("#categoryDialog");
+    const categoryForm = document.querySelector("#categoryForm");
+    const categoryNameField = document.querySelector("#categoryNameField");
+    const closeCategoryDialogButton = document.querySelector("#closeCategoryDialogButton");
+    const cancelCategoryDialogButton = document.querySelector("#cancelCategoryDialogButton");
+    const confirmDialog = document.querySelector("#confirmDialog");
+    const confirmForm = document.querySelector("#confirmForm");
+    const confirmTitle = document.querySelector("#confirmTitle");
+    const confirmMessage = document.querySelector("#confirmMessage");
+    const confirmSubmitButton = document.querySelector("#confirmSubmitButton");
+    const closeConfirmDialogButton = document.querySelector("#closeConfirmDialogButton");
+    const cancelConfirmDialogButton = document.querySelector("#cancelConfirmDialogButton");
     const categoryField = document.querySelector("#categoryField");
     const categoryOptionsEl = document.querySelector("#categoryOptions");
     const nameField = document.querySelector("#nameField");
@@ -929,12 +990,17 @@
     const undoToast = document.querySelector("#undoToast");
     const undoMessage = document.querySelector("#undoMessage");
     const undoButton = document.querySelector("#undoButton");
+    const noticeToast = document.querySelector("#noticeToast");
+    const noticeMessage = document.querySelector("#noticeMessage");
 
     let services = loadServices();
     let activeCategory = "すべて";
     let editingServiceId = null;
+    let renamingCategory = null;
+    let confirmResolver = null;
     let pendingDelete = null;
     let undoTimer = null;
+    let noticeTimer = null;
 
     render();
     updateClock();
@@ -948,6 +1014,23 @@
     undoButton.addEventListener("click", restoreDeletedService);
     closeDialogButton.addEventListener("click", () => dialog.close());
     cancelDialogButton.addEventListener("click", () => dialog.close());
+    categoryForm.addEventListener("submit", submitCategoryRename);
+    categoryNameField.addEventListener("input", () => categoryNameField.setCustomValidity(""));
+    closeCategoryDialogButton.addEventListener("click", closeCategoryDialog);
+    cancelCategoryDialogButton.addEventListener("click", closeCategoryDialog);
+    categoryDialog.addEventListener("cancel", () => {
+      renamingCategory = null;
+    });
+    confirmForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      closeConfirmDialog(true);
+    });
+    closeConfirmDialogButton.addEventListener("click", () => closeConfirmDialog(false));
+    cancelConfirmDialogButton.addEventListener("click", () => closeConfirmDialog(false));
+    confirmDialog.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      closeConfirmDialog(false);
+    });
     document.addEventListener("keydown", handleGlobalKeydown);
     urlField.addEventListener("input", () => urlField.setCustomValidity(""));
     urlField.addEventListener("blur", () => {
@@ -1282,7 +1365,7 @@
       moveDownButton.disabled = index === -1 || index >= categories.length - 1;
       moveUpButton.addEventListener("click", () => moveCategory(category, -1));
       moveDownButton.addEventListener("click", () => moveCategory(category, 1));
-      renameButton.addEventListener("click", () => renameCategory(category));
+      renameButton.addEventListener("click", () => openCategoryDialog(category));
 
       actions.append(moveUpButton, moveDownButton, renameButton);
       return actions;
@@ -1312,10 +1395,43 @@
       render();
     }
 
-    function renameCategory(category) {
-      const nextName = cleanText(prompt("新しいカテゴリ名", category), 40);
-      if (!nextName || nextName === category) return;
+    function openCategoryDialog(category) {
+      renamingCategory = category;
+      categoryForm.reset();
+      categoryNameField.setCustomValidity("");
+      categoryNameField.value = category;
+      categoryDialog.showModal();
+      categoryNameField.focus();
+      categoryNameField.select();
+    }
 
+    function closeCategoryDialog() {
+      renamingCategory = null;
+      categoryDialog.close();
+    }
+
+    function submitCategoryRename(event) {
+      event.preventDefault();
+      if (!renamingCategory) return;
+
+      const nextName = cleanText(categoryNameField.value, 40);
+      if (!nextName) {
+        categoryNameField.setCustomValidity("カテゴリ名を入力してください。");
+        categoryNameField.reportValidity();
+        return;
+      }
+
+      const currentName = renamingCategory;
+      if (nextName === currentName) {
+        closeCategoryDialog();
+        return;
+      }
+
+      renameCategory(currentName, nextName);
+      closeCategoryDialog();
+    }
+
+    function renameCategory(category, nextName) {
       services = services.map((service) => service.category === category
         ? { ...service, category: nextName }
         : service);
@@ -1415,7 +1531,12 @@
         const imported = getImportedServices(data);
         const nextServices = sanitizeServices(imported);
         if (nextServices.length === 0) throw new Error("No services");
-        if (!confirm("現在のリンク一覧をインポート内容で置き換えます。")) return;
+        const confirmed = await askConfirmation({
+          title: "インポートしますか",
+          message: "現在のリンク一覧をインポート内容で置き換えます。この操作は元に戻せません。",
+          confirmLabel: "置き換える"
+        });
+        if (!confirmed) return;
 
         services = nextServices;
         saveServices();
@@ -1423,11 +1544,46 @@
         searchInput.value = "";
         activeCategory = "すべて";
         render();
+        showNotice("リンク一覧をインポートしました。");
       } catch {
-        alert("読み込めるリンクデータではありません。");
+        showNotice("読み込めるリンクデータではありません。");
       } finally {
         importFile.value = "";
       }
+    }
+
+    function askConfirmation({ title, message, confirmLabel }) {
+      if (confirmResolver) closeConfirmDialog(false);
+
+      confirmTitle.textContent = title;
+      confirmMessage.textContent = message;
+      confirmSubmitButton.textContent = confirmLabel;
+      confirmDialog.showModal();
+      confirmSubmitButton.focus();
+
+      return new Promise((resolve) => {
+        confirmResolver = resolve;
+      });
+    }
+
+    function closeConfirmDialog(confirmed) {
+      if (!confirmDialog.open && !confirmResolver) return;
+
+      if (confirmDialog.open) confirmDialog.close();
+      const resolve = confirmResolver;
+      confirmResolver = null;
+      if (resolve) resolve(confirmed);
+    }
+
+    function showNotice(message) {
+      if (noticeTimer) clearTimeout(noticeTimer);
+
+      noticeMessage.textContent = message;
+      noticeToast.hidden = false;
+      noticeTimer = setTimeout(() => {
+        noticeToast.hidden = true;
+        noticeTimer = null;
+      }, 4200);
     }
 
     function getImportedServices(data) {
