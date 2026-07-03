@@ -716,7 +716,7 @@
     <p class="empty" id="emptyState">一致するリンクがありません。</p>
   </main>
 
-  <dialog id="linkDialog">
+  <dialog id="linkDialog" aria-labelledby="linkDialogTitle">
     <form method="dialog" id="linkForm">
       <div class="dialog-head">
         <h2 id="linkDialogTitle">リンクを追加</h2>
@@ -757,10 +757,10 @@
     </form>
   </dialog>
 
-  <dialog id="categoryDialog">
+  <dialog id="categoryDialog" aria-labelledby="categoryDialogTitle">
     <form method="dialog" id="categoryForm">
       <div class="dialog-head">
-        <h2>カテゴリ名を変更</h2>
+        <h2 id="categoryDialogTitle">カテゴリ名を変更</h2>
         <button class="icon-button" type="button" id="closeCategoryDialogButton" title="閉じる" aria-label="閉じる">
           <i data-lucide="x"></i>
         </button>
@@ -779,7 +779,7 @@
     </form>
   </dialog>
 
-  <dialog id="confirmDialog">
+  <dialog id="confirmDialog" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
     <form method="dialog" id="confirmForm">
       <div class="dialog-head">
         <h2 id="confirmTitle">確認</h2>
