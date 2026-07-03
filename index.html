@@ -566,20 +566,28 @@
       background: transparent;
     }
 
-    .toast {
+    .toast-stack {
       position: fixed;
       right: 16px;
       bottom: 16px;
       z-index: 20;
+      display: grid;
+      gap: 8px;
+      width: min(420px, calc(100% - 32px));
+      pointer-events: none;
+    }
+
+    .toast {
       display: flex;
       align-items: center;
       gap: 12px;
-      width: min(420px, calc(100% - 32px));
+      width: 100%;
       padding: 10px 10px 10px 14px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel-2);
       color: var(--text);
+      pointer-events: auto;
     }
 
     .toast[hidden] {
@@ -651,7 +659,7 @@
         min-height: 108px;
       }
 
-      .toast {
+      .toast-stack {
         right: 10px;
         bottom: 10px;
         width: calc(100% - 20px);
@@ -820,13 +828,15 @@
     </article>
   </template>
 
-  <div class="toast" id="undoToast" role="status" aria-live="polite" hidden>
-    <span id="undoMessage">リンクを削除しました。</span>
-    <button class="text-button secondary" id="undoButton" type="button">元に戻す</button>
-  </div>
+  <div class="toast-stack">
+    <div class="toast" id="undoToast" role="status" aria-live="polite" hidden>
+      <span id="undoMessage">リンクを削除しました。</span>
+      <button class="text-button secondary" id="undoButton" type="button">元に戻す</button>
+    </div>
 
-  <div class="toast" id="noticeToast" role="status" aria-live="polite" hidden>
-    <span id="noticeMessage"></span>
+    <div class="toast" id="noticeToast" role="status" aria-live="polite" hidden>
+      <span id="noticeMessage"></span>
+    </div>
   </div>
 
   <script>
@@ -1520,6 +1530,7 @@
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 0);
+      showNotice("リンク一覧をエクスポートしました。");
     }
 
     async function importServices() {
