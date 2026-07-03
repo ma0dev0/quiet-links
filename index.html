@@ -685,7 +685,7 @@
           <i data-lucide="plus"></i>
           追加
         </button>
-        <input class="visually-hidden" id="importFile" type="file" accept="application/json,.json">
+        <input class="visually-hidden" id="importFile" type="file" accept="application/json,.json" tabindex="-1" aria-hidden="true">
       </div>
     </header>
 
@@ -1745,7 +1745,9 @@
       const isTyping = target instanceof HTMLElement
         && ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName);
 
-      if (event.key === "/" && !isTyping && !dialog.open) {
+      if (isAnyDialogOpen()) return;
+
+      if (event.key === "/" && !isTyping) {
         event.preventDefault();
         searchInput.focus();
         searchInput.select();
@@ -1756,6 +1758,10 @@
         searchInput.value = "";
         render();
       }
+    }
+
+    function isAnyDialogOpen() {
+      return dialog.open || categoryDialog.open || confirmDialog.open;
     }
 
     function getHostname(url) {
