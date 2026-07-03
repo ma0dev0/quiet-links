@@ -1069,6 +1069,7 @@
         return;
       }
 
+      categoryField.setCustomValidity("");
       const category = normalizeCategoryName(categoryField.value);
       const service = {
         id: editingServiceId || createServiceId(),
@@ -1716,6 +1717,7 @@
     function openDialog(service = null) {
       form.reset();
       urlField.setCustomValidity("");
+      categoryField.setCustomValidity("");
       editingServiceId = service ? service.id : null;
       dialogTitle.textContent = service ? "リンクを編集" : "リンクを追加";
       submitLabel.textContent = service ? "更新" : "保存";
