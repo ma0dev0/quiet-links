@@ -5,22 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Quiet Links</title>
   <meta name="description" content="A minimal personal link dashboard">
-  <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="12" fill="%23101214"/%3E%3Ccircle cx="32" cy="32" r="10" fill="%235dd3b8"/%3E%3C/svg%3E'>
+  <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Cdefs%3E%3ClinearGradient id="g" x1="0" y1="0" x2="1" y2="1"%3E%3Cstop offset="0" stop-color="%2353dfff"/%3E%3Cstop offset=".5" stop-color="%238b7bff"/%3E%3Cstop offset="1" stop-color="%23ff7ad9"/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="64" height="64" rx="14" fill="%2307080f"/%3E%3Ccircle cx="32" cy="32" r="11" fill="url(%23g)"/%3E%3C/svg%3E'>
   <link rel="preconnect" href="https://www.google.com">
   <link rel="preconnect" href="https://unpkg.com">
   <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js" defer></script>
   <style>
     :root {
-      --bg: #101214;
-      --panel: #181c20;
-      --panel-2: #20262b;
-      --text: #eef2f5;
-      --muted: #aab4be;
-      --line: #303841;
-      --accent: #5dd3b8;
-      --accent-2: #f3bd5b;
-      --danger: #ef6f6c;
-      --shadow: none;
+      --bg: #07080f;
+      --panel: #12141f;
+      --panel-2: #1a1e2e;
+      --text: #f2f4ff;
+      --muted: #9aa3c4;
+      --line: #272c45;
+      --accent: #53dfff;
+      --accent-2: #ffc247;
+      --danger: #ff6b81;
+      --gradient: linear-gradient(120deg, #53dfff, #8b7bff 45%, #ff7ad9);
+      --glow: 0 12px 40px -12px rgba(139, 123, 255, 0.5);
       color-scheme: dark;
       font-family:
         Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -36,6 +37,57 @@
       margin: 0;
       background: var(--bg);
       color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      width: 55vmax;
+      height: 55vmax;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    body::before {
+      top: -22vmax;
+      left: -14vmax;
+      background: radial-gradient(circle at 30% 30%, rgba(83, 223, 255, 0.5), rgba(139, 123, 255, 0.28) 45%, transparent 70%);
+      animation: drift-a 26s ease-in-out infinite alternate;
+    }
+
+    body::after {
+      right: -18vmax;
+      bottom: -24vmax;
+      background: radial-gradient(circle at 70% 70%, rgba(255, 122, 217, 0.4), rgba(139, 123, 255, 0.22) 45%, transparent 70%);
+      animation: drift-b 32s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift-a {
+      to {
+        transform: translate(9vmax, 7vmax) rotate(30deg);
+      }
+    }
+
+    @keyframes drift-b {
+      to {
+        transform: translate(-9vmax, -7vmax) rotate(-25deg);
+      }
+    }
+
+    @keyframes rise-in {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+    }
+
+    ::selection {
+      background: color-mix(in srgb, var(--accent), transparent 60%);
     }
 
     a {
@@ -82,8 +134,35 @@
     .topbar {
       display: flex;
       align-items: center;
-      justify-content: flex-end;
-      padding: 0 0 16px;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 0 0 18px;
+      animation: rise-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 9px;
+      background: var(--gradient);
+      box-shadow: 0 0 18px rgba(139, 123, 255, 0.65);
+      animation: brand-pulse 3.2s ease-in-out infinite;
+    }
+
+    @keyframes brand-pulse {
+      50% {
+        box-shadow: 0 0 28px rgba(83, 223, 255, 0.8);
+      }
     }
 
     .toolbar {
@@ -96,22 +175,23 @@
 
     .clock {
       min-width: 128px;
-      padding: 8px 10px;
+      padding: 8px 12px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--panel), transparent 20%);
       text-align: right;
     }
 
     .clock strong {
       display: block;
-      font-size: 1rem;
+      font-size: 1.05rem;
       line-height: 1.1;
+      font-variant-numeric: tabular-nums;
     }
 
     .clock span {
       color: var(--muted);
-      font-size: 0.78rem;
+      font-size: 0.75rem;
     }
 
     .icon-button,
@@ -122,10 +202,10 @@
       gap: 7px;
       min-height: 40px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--panel), transparent 20%);
       color: var(--text);
-      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
     }
 
     .icon-button {
@@ -134,14 +214,21 @@
     }
 
     .text-button {
-      padding: 0 12px;
+      padding: 0 14px;
+      font-weight: 600;
     }
 
     .icon-button:hover,
     .text-button:hover {
-      transform: translateY(-1px);
-      border-color: color-mix(in srgb, var(--accent), var(--line) 45%);
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--accent), var(--line) 35%);
       background: var(--panel-2);
+      box-shadow: 0 8px 24px -10px rgba(83, 223, 255, 0.35);
+    }
+
+    .icon-button:active,
+    .text-button:active {
+      transform: translateY(0) scale(0.97);
     }
 
     .icon-button svg,
@@ -153,21 +240,39 @@
 
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 300px;
-      gap: 18px;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 16px;
       align-items: stretch;
       margin-bottom: 18px;
+      animation: rise-in 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
     }
 
     .search-panel {
       display: grid;
       align-content: center;
+      gap: 14px;
       min-height: 104px;
-      padding: 18px;
+      padding: 22px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
+      border-radius: 20px;
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+    }
+
+    .greeting {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .greeting-text {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
     .search-box {
@@ -175,11 +280,12 @@
       align-items: center;
       gap: 10px;
       width: min(720px, 100%);
-      min-height: 52px;
+      min-height: 54px;
       padding: 0 14px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--bg), var(--panel) 32%);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--bg), transparent 30%);
+      transition: border-color 160ms ease, box-shadow 160ms ease;
     }
 
     .search-box svg {
@@ -205,19 +311,31 @@
 
     .search-box:focus-within {
       border-color: var(--accent);
-      outline: 3px solid color-mix(in srgb, var(--accent), transparent 72%);
-      outline-offset: 3px;
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--accent), transparent 75%),
+        0 0 34px -6px color-mix(in srgb, var(--accent), transparent 55%);
+    }
+
+    .search-kbd {
+      flex: 0 0 auto;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      border-bottom-width: 2px;
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--panel-2), transparent 30%);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.78rem;
     }
 
     .status-panel {
       display: grid;
       align-content: space-between;
       gap: 12px;
-      padding: 18px;
+      padding: 20px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
+      border-radius: 20px;
+      background: linear-gradient(200deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
     }
 
     .metric {
@@ -227,13 +345,19 @@
 
     .metric span {
       color: var(--muted);
-      font-size: 0.78rem;
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
     }
 
     .metric strong {
-      font-size: 2.15rem;
+      font-size: 2.3rem;
       line-height: 1;
       letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
     .quick-row {
@@ -247,12 +371,19 @@
       align-items: center;
       gap: 8px;
       min-height: 34px;
-      padding: 0 10px;
+      padding: 0 12px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel-2);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--panel-2), transparent 15%);
       color: var(--text);
       font-size: 0.86rem;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .quick-link:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--accent), var(--line) 35%);
+      box-shadow: 0 8px 20px -10px rgba(83, 223, 255, 0.45);
     }
 
     .quick-link img {
@@ -264,9 +395,10 @@
     .tabs {
       display: flex;
       gap: 8px;
-      padding: 8px 0 18px;
+      padding: 8px 0 20px;
       overflow-x: auto;
       scrollbar-width: thin;
+      animation: rise-in 0.6s 80ms cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
     }
 
     .tab {
@@ -274,18 +406,27 @@
       align-items: center;
       gap: 8px;
       min-height: 38px;
-      padding: 0 12px;
+      padding: 0 14px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--panel), transparent 20%);
       color: var(--muted);
       white-space: nowrap;
+      transition: transform 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .tab:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--accent), var(--line) 40%);
+      color: var(--text);
     }
 
     .tab[aria-pressed="true"] {
-      border-color: color-mix(in srgb, var(--accent), var(--line) 35%);
-      background: color-mix(in srgb, var(--accent), var(--panel) 86%);
-      color: var(--text);
+      border-color: transparent;
+      background: var(--gradient);
+      color: #07101a;
+      font-weight: 700;
+      box-shadow: 0 6px 20px -8px rgba(139, 123, 255, 0.8);
     }
 
     .tab-count {
@@ -294,13 +435,19 @@
       height: 22px;
       place-items: center;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--bg), transparent 18%);
+      background: rgba(7, 8, 15, 0.55);
       color: var(--muted);
       font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .tab[aria-pressed="true"] .tab-count {
+      background: rgba(7, 8, 15, 0.2);
+      color: inherit;
     }
 
     .section {
-      margin: 6px 0 28px;
+      margin: 6px 0 30px;
     }
 
     .section-head {
@@ -318,9 +465,22 @@
     }
 
     .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin: 0;
-      font-size: 1rem;
+      font-size: 1.05rem;
+      font-weight: 800;
       letter-spacing: 0;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 4px;
+      background: var(--gradient);
+      box-shadow: 0 0 12px rgba(139, 123, 255, 0.7);
     }
 
     .section-subtitle {
@@ -332,7 +492,7 @@
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 12px;
+      gap: 14px;
     }
 
     .card {
@@ -341,18 +501,50 @@
       grid-template-columns: 44px minmax(0, 1fr) 70px;
       gap: 12px;
       min-height: 116px;
-      padding: 14px;
+      padding: 16px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
+      border-radius: 18px;
+      background: linear-gradient(170deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
       box-shadow: none;
-      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+      transition: transform 180ms cubic-bezier(0.2, 0.7, 0.3, 1), background 180ms ease, box-shadow 180ms ease;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      padding: 1px;
+      border-radius: inherit;
+      background: var(--gradient);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 180ms ease;
+      pointer-events: none;
     }
 
     .card:hover {
-      transform: translateY(-2px);
-      border-color: color-mix(in srgb, var(--accent), var(--line) 45%);
-      background: var(--panel-2);
+      transform: translateY(-4px);
+      background: linear-gradient(170deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+      box-shadow: var(--glow);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .is-animated .card {
+      animation: card-in 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+      animation-delay: min(calc(var(--i, 0) * 40ms), 480ms);
+    }
+
+    @keyframes card-in {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+      }
     }
 
     .service-icon {
@@ -361,8 +553,8 @@
       height: 44px;
       place-items: center;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--bg), var(--panel) 54%);
+      border-radius: 12px;
+      background: rgba(7, 8, 15, 0.5);
       overflow: hidden;
     }
 
@@ -370,6 +562,11 @@
       width: 26px;
       height: 26px;
       border-radius: 6px;
+      transition: transform 200ms cubic-bezier(0.2, 0.7, 0.3, 1.4);
+    }
+
+    .card:hover .service-icon img {
+      transform: scale(1.18) rotate(-4deg);
     }
 
     .card-body {
@@ -415,9 +612,9 @@
     }
 
     mark {
-      padding: 0 2px;
-      border-radius: 4px;
-      background: color-mix(in srgb, var(--accent), transparent 72%);
+      padding: 0 3px;
+      border-radius: 5px;
+      background: color-mix(in srgb, var(--accent), transparent 70%);
       color: var(--text);
     }
 
@@ -434,9 +631,10 @@
       height: 32px;
       place-items: center;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--bg), var(--panel) 46%);
+      border-radius: 10px;
+      background: rgba(7, 8, 15, 0.4);
       color: var(--muted);
+      transition: transform 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
     }
 
     .mini-button:hover,
@@ -445,13 +643,24 @@
       color: var(--text);
     }
 
+    .mini-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .mini-button:active:not(:disabled) {
+      transform: scale(0.92);
+    }
+
     .mini-button:disabled {
       cursor: not-allowed;
       opacity: 0.35;
     }
 
     .mini-button[aria-pressed="true"] {
-      background: color-mix(in srgb, var(--accent-2), var(--panel) 82%);
+      border-color: color-mix(in srgb, var(--accent-2), transparent 40%);
+      background: color-mix(in srgb, var(--accent-2), var(--panel) 80%);
+      color: var(--accent-2);
+      box-shadow: 0 0 14px -2px color-mix(in srgb, var(--accent-2), transparent 45%);
     }
 
     .mini-button.danger:hover {
@@ -466,30 +675,44 @@
 
     .empty {
       display: none;
-      padding: 26px;
+      padding: 34px;
       border: 1px dashed var(--line);
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--panel), transparent 30%);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.02);
       color: var(--muted);
       text-align: center;
+      font-size: 0.95rem;
     }
 
     .empty.is-visible {
       display: block;
+      animation: rise-in 0.3s ease backwards;
     }
 
     dialog {
       width: min(560px, calc(100% - 26px));
+      padding: 20px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 20px;
       background: var(--panel);
       color: var(--text);
-      box-shadow: var(--shadow);
+      box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.7), var(--glow);
+    }
+
+    dialog[open] {
+      animation: dialog-in 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.15) backwards;
+    }
+
+    @keyframes dialog-in {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+      }
     }
 
     dialog::backdrop {
-      background: rgba(0, 0, 0, 0.55);
-      backdrop-filter: blur(4px);
+      background: rgba(4, 5, 12, 0.6);
+      backdrop-filter: blur(6px);
     }
 
     .dialog-head {
@@ -529,19 +752,21 @@
 
     .field input,
     .field select {
-      min-height: 42px;
+      min-height: 44px;
       width: 100%;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--bg), var(--panel) 34%);
+      border-radius: 12px;
+      background: rgba(7, 8, 15, 0.5);
       color: var(--text);
-      padding: 0 11px;
+      padding: 0 12px;
       outline: 0;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
     }
 
     .field input:focus,
     .field select:focus {
       border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent), transparent 78%);
     }
 
     .field input:user-invalid {
@@ -556,10 +781,18 @@
     }
 
     .primary {
-      border-color: color-mix(in srgb, var(--accent), var(--line) 30%);
-      background: var(--accent);
-      color: #07110f;
-      font-weight: 700;
+      border-color: transparent;
+      background: var(--gradient);
+      color: #07101a;
+      font-weight: 800;
+      box-shadow: 0 6px 22px -8px rgba(139, 123, 255, 0.7);
+    }
+
+    .primary:hover {
+      border-color: transparent;
+      background: var(--gradient);
+      filter: brightness(1.12) saturate(1.05);
+      box-shadow: 0 12px 30px -8px rgba(139, 123, 255, 0.85);
     }
 
     .secondary {
@@ -582,12 +815,22 @@
       align-items: center;
       gap: 12px;
       width: 100%;
-      padding: 10px 10px 10px 14px;
+      padding: 12px 12px 12px 16px;
       border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel-2);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--panel-2), transparent 10%);
+      backdrop-filter: blur(10px);
       color: var(--text);
+      box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.8);
       pointer-events: auto;
+      animation: toast-in 0.32s cubic-bezier(0.2, 0.8, 0.3, 1.1) backwards;
+    }
+
+    @keyframes toast-in {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.97);
+      }
     }
 
     .toast[hidden] {
@@ -599,6 +842,36 @@
       flex: 1;
       color: var(--muted);
       font-size: 0.9rem;
+    }
+
+    .burst {
+      position: fixed;
+      z-index: 60;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+    }
+
+    .burst span {
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      animation: burst-out 0.6s cubic-bezier(0.1, 0.6, 0.3, 1) forwards;
+    }
+
+    .burst span:nth-child(odd) {
+      background: var(--accent);
+    }
+
+    @keyframes burst-out {
+      to {
+        transform: translate(var(--dx), var(--dy)) scale(0);
+        opacity: 0;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -613,7 +886,14 @@
 
       .icon-button:hover,
       .text-button:hover,
-      .card:hover {
+      .card:hover,
+      .tab:hover,
+      .quick-link:hover,
+      .mini-button:hover:not(:disabled) {
+        transform: none;
+      }
+
+      .card:hover .service-icon img {
         transform: none;
       }
     }
@@ -644,11 +924,15 @@
 
       .search-panel {
         min-height: 92px;
-        padding: 14px;
+        padding: 16px;
+      }
+
+      .search-kbd {
+        display: none;
       }
 
       .status-panel {
-        padding: 14px;
+        padding: 16px;
       }
 
       .grid {
@@ -670,6 +954,10 @@
 <body>
   <main class="shell">
     <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Quiet Links
+      </div>
       <div class="toolbar">
         <div class="clock" aria-live="polite">
           <strong id="clockTime">--:--</strong>
@@ -681,7 +969,7 @@
         <button class="icon-button" id="exportButton" type="button" title="エクスポート" aria-label="エクスポート">
           <i data-lucide="download"></i>
         </button>
-        <button class="text-button" id="addButton" type="button">
+        <button class="text-button primary" id="addButton" type="button">
           <i data-lucide="plus"></i>
           追加
         </button>
@@ -691,10 +979,15 @@
 
     <section class="hero" aria-label="検索">
       <div class="search-panel">
+        <p class="greeting">
+          <span class="greeting-text" id="greetingText">こんにちは</span>
+          <span id="greetingEmoji" aria-hidden="true">👋</span>
+        </p>
         <label class="search-box">
           <i data-lucide="search"></i>
           <span class="visually-hidden">検索キーワード</span>
           <input id="searchInput" autocomplete="off" type="search" placeholder="サービス名・カテゴリ・タグで検索">
+          <kbd class="search-kbd" aria-hidden="true">/</kbd>
         </label>
       </div>
 
@@ -713,7 +1006,7 @@
 
     <nav class="tabs" id="tabs" aria-label="カテゴリ"></nav>
     <div id="sections"></div>
-    <p class="empty" id="emptyState">一致するリンクがありません。</p>
+    <p class="empty" id="emptyState">🔭 一致するリンクが見つかりません。別のキーワードで探してみましょう。</p>
   </main>
 
   <dialog id="linkDialog" aria-labelledby="linkDialogTitle">
@@ -1004,6 +1297,9 @@
     const undoButton = document.querySelector("#undoButton");
     const noticeToast = document.querySelector("#noticeToast");
     const noticeMessage = document.querySelector("#noticeMessage");
+    const greetingTextEl = document.querySelector("#greetingText");
+    const greetingEmojiEl = document.querySelector("#greetingEmoji");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     let services = loadServices();
     let activeCategory = allCategoryLabel;
@@ -1014,11 +1310,11 @@
     let undoTimer = null;
     let noticeTimer = null;
 
-    render();
+    render({ animate: true });
     updateClock();
     setInterval(updateClock, 1000 * 30);
 
-    searchInput.addEventListener("input", render);
+    searchInput.addEventListener("input", () => render());
     addButton.addEventListener("click", () => openDialog());
     exportButton.addEventListener("click", exportServices);
     importButton.addEventListener("click", () => importFile.click());
@@ -1264,7 +1560,7 @@
         .sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start))[0];
     }
 
-    function render() {
+    function render({ animate = false } = {}) {
       const query = searchInput.value.trim();
       const searchTokens = getSearchTokens(query);
       const categories = getCategories();
@@ -1288,7 +1584,9 @@
         .map(({ service }) => service);
 
       const grouped = groupByCategory(filtered);
+      sectionsEl.classList.toggle("is-animated", animate);
       sectionsEl.replaceChildren();
+      let cardIndex = 0;
 
       grouped.forEach(([category, items]) => {
         const section = document.createElement("section");
@@ -1308,13 +1606,18 @@
 
         const grid = document.createElement("div");
         grid.className = "grid";
-        items.forEach((service) => grid.append(createCard(service, searchTokens)));
+        items.forEach((service) => {
+          const card = createCard(service, searchTokens);
+          card.style.setProperty("--i", String(cardIndex));
+          cardIndex += 1;
+          grid.append(card);
+        });
         section.append(sectionHead, grid);
         sectionsEl.append(section);
       });
 
-      visibleCountEl.textContent = String(filtered.length);
-      favoriteCountEl.textContent = String(services.filter((service) => service.favorite).length);
+      setMetric(visibleCountEl, filtered.length, animate);
+      setMetric(favoriteCountEl, services.filter((service) => service.favorite).length, animate);
       emptyStateEl.classList.toggle("is-visible", filtered.length === 0);
       refreshIcons();
     }
@@ -1357,7 +1660,12 @@
 
       const position = getCategoryPosition(service);
       favoriteButton.addEventListener("click", () => {
-        services = services.map((item) => item.id === service.id ? { ...item, favorite: !item.favorite } : item);
+        const willFavorite = !service.favorite;
+        if (willFavorite) {
+          const rect = favoriteButton.getBoundingClientRect();
+          burstAt(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+        services = services.map((item) => item.id === service.id ? { ...item, favorite: willFavorite } : item);
         saveServices();
         render();
       });
@@ -1662,7 +1970,7 @@
         button.append(label, countEl);
         button.addEventListener("click", () => {
           activeCategory = category;
-          render();
+          render({ animate: true });
         });
         tabsEl.append(button);
       });
@@ -1804,6 +2112,63 @@
         day: "numeric",
         weekday: "short"
       }).format(now);
+      updateGreeting(now.getHours());
+    }
+
+    function updateGreeting(hour) {
+      let text = "こんばんは";
+      let emoji = "🌙";
+      if (hour >= 5 && hour < 10) {
+        text = "おはようございます";
+        emoji = "☀️";
+      } else if (hour >= 10 && hour < 17) {
+        text = "こんにちは";
+        emoji = "🌤️";
+      } else if (hour >= 23 || hour < 5) {
+        text = "夜ふかしモード";
+        emoji = "🌌";
+      }
+      greetingTextEl.textContent = text;
+      greetingEmojiEl.textContent = emoji;
+    }
+
+    function setMetric(element, value, animate) {
+      const target = Number(value) || 0;
+      element.dataset.target = String(target);
+      if (!animate || prefersReducedMotion.matches || target === 0) {
+        element.textContent = String(target);
+        return;
+      }
+
+      const duration = 600;
+      const start = performance.now();
+      const tick = (now) => {
+        if (element.dataset.target !== String(target)) return;
+        const progress = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        element.textContent = String(Math.round(target * eased));
+        if (progress < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    function burstAt(x, y) {
+      if (prefersReducedMotion.matches) return;
+
+      const burst = document.createElement("div");
+      burst.className = "burst";
+      burst.style.left = `${x}px`;
+      burst.style.top = `${y}px`;
+      for (let i = 0; i < 10; i += 1) {
+        const particle = document.createElement("span");
+        const angle = (Math.PI * 2 * i) / 10 + Math.random() * 0.5;
+        const distance = 24 + Math.random() * 26;
+        particle.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+        particle.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+        burst.append(particle);
+      }
+      document.body.append(burst);
+      setTimeout(() => burst.remove(), 700);
     }
 
     function refreshIcons() {
