@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Quiet Links</title>
-  <meta name="description" content="A minimal personal link dashboard">
+  <meta name="description" content="毎日使うリンクへ、迷わず最短で移動できるパーソナルダッシュボード">
   <link rel="icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Cdefs%3E%3ClinearGradient id="g" x1="0" y1="0" x2="1" y2="1"%3E%3Cstop offset="0" stop-color="%2353dfff"/%3E%3Cstop offset=".5" stop-color="%238b7bff"/%3E%3Cstop offset="1" stop-color="%23ff7ad9"/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width="64" height="64" rx="14" fill="%2307080f"/%3E%3Ccircle cx="32" cy="32" r="11" fill="url(%23g)"/%3E%3C/svg%3E'>
   <link rel="preconnect" href="https://www.google.com">
   <link rel="preconnect" href="https://unpkg.com">
@@ -173,6 +173,25 @@
       justify-content: flex-end;
     }
 
+    .manage-only {
+      display: none !important;
+    }
+
+    body.manage-mode .manage-only {
+      display: inline-flex !important;
+    }
+
+    .manage-only[hidden] {
+      display: none !important;
+    }
+
+    #manageButton[aria-pressed="true"] {
+      border-color: color-mix(in srgb, var(--accent), var(--line) 30%);
+      background: var(--panel-2);
+      color: var(--accent);
+      box-shadow: 0 8px 24px -12px rgba(83, 223, 255, 0.55);
+    }
+
     .clock {
       min-width: 128px;
       padding: 8px 12px;
@@ -316,6 +335,12 @@
         0 0 34px -6px color-mix(in srgb, var(--accent), transparent 55%);
     }
 
+    .search-help {
+      margin: -4px 2px 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
     .search-kbd {
       flex: 0 0 auto;
       padding: 3px 8px;
@@ -336,6 +361,22 @@
       border: 1px solid var(--line);
       border-radius: 20px;
       background: linear-gradient(200deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+    }
+
+    .status-heading {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .status-copy {
+      margin: -4px 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
     }
 
     .metric {
@@ -450,6 +491,34 @@
       margin: 6px 0 30px;
     }
 
+    .section.is-home-section {
+      margin-bottom: 34px;
+    }
+
+    .section-kicker {
+      margin: 0 0 5px;
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .home-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: -6px 0 18px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .home-note svg {
+      width: 16px;
+      height: 16px;
+      color: var(--accent);
+    }
+
     .section-head {
       display: flex;
       align-items: end;
@@ -498,7 +567,7 @@
     .card {
       position: relative;
       display: grid;
-      grid-template-columns: 44px minmax(0, 1fr) 70px;
+      grid-template-columns: 44px minmax(0, 1fr) 32px;
       gap: 12px;
       min-height: 116px;
       padding: 16px;
@@ -507,6 +576,10 @@
       background: linear-gradient(170deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
       box-shadow: none;
       transition: transform 180ms cubic-bezier(0.2, 0.7, 0.3, 1), background 180ms ease, box-shadow 180ms ease;
+    }
+
+    body.manage-mode .card {
+      grid-template-columns: 44px minmax(0, 1fr) 70px;
     }
 
     .card::before {
@@ -623,6 +696,27 @@
       grid-template-columns: repeat(2, 32px);
       align-content: start;
       gap: 6px;
+    }
+
+    body:not(.manage-mode) .card-actions {
+      grid-template-columns: 32px;
+    }
+
+    .card-link::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+    }
+
+    .service-icon,
+    .card-actions {
+      position: relative;
+      z-index: 1;
+    }
+
+    .open-button {
+      color: var(--accent);
     }
 
     .mini-button {
@@ -943,6 +1037,18 @@
         min-height: 108px;
       }
 
+      .clock {
+        display: none;
+      }
+
+      .toolbar {
+        flex-wrap: nowrap;
+      }
+
+      #manageButton .button-label {
+        display: none;
+      }
+
       .toast-stack {
         right: 10px;
         bottom: 10px;
@@ -963,15 +1069,19 @@
           <strong id="clockTime">--:--</strong>
           <span id="clockDate">----/--/--</span>
         </div>
-        <button class="icon-button" id="importButton" type="button" title="インポート" aria-label="インポート">
+        <button class="icon-button manage-only" id="importButton" type="button" title="インポート" aria-label="インポート">
           <i data-lucide="upload"></i>
         </button>
-        <button class="icon-button" id="exportButton" type="button" title="エクスポート" aria-label="エクスポート">
+        <button class="icon-button manage-only" id="exportButton" type="button" title="エクスポート" aria-label="エクスポート">
           <i data-lucide="download"></i>
         </button>
-        <button class="text-button primary" id="addButton" type="button">
+        <button class="text-button primary manage-only" id="addButton" type="button">
           <i data-lucide="plus"></i>
           追加
+        </button>
+        <button class="text-button" id="manageButton" type="button" aria-label="リンクを整理" aria-pressed="false">
+          <i data-lucide="sliders-horizontal"></i>
+          <span class="button-label">整理</span>
         </button>
         <input class="visually-hidden" id="importFile" type="file" accept="application/json,.json" tabindex="-1" aria-hidden="true">
       </div>
@@ -986,14 +1096,16 @@
         <label class="search-box">
           <i data-lucide="search"></i>
           <span class="visually-hidden">検索キーワード</span>
-          <input id="searchInput" autocomplete="off" type="search" placeholder="サービス名・カテゴリ・タグで検索">
+          <input id="searchInput" autocomplete="off" type="search" placeholder="行きたい場所を検索">
           <kbd class="search-kbd" aria-hidden="true">/</kbd>
         </label>
+        <p class="search-help" id="searchHelp">名前・カテゴリ・タグから検索できます</p>
       </div>
 
-      <aside class="status-panel" aria-label="固定リンク">
+      <aside class="status-panel" aria-label="いつものリンク">
+        <p class="status-heading">いつものリンク</p>
         <div class="metric">
-          <span>表示中</span>
+          <span>登録済み</span>
           <strong id="visibleCount">0</strong>
         </div>
         <div class="metric">
@@ -1001,12 +1113,13 @@
           <strong id="favoriteCount">0</strong>
         </div>
         <div class="quick-row" id="quickRow"></div>
+        <p class="status-copy">よく使うリンクは「整理」から星を付けると、ここへ並びます。</p>
       </aside>
     </section>
 
     <nav class="tabs" id="tabs" aria-label="カテゴリ"></nav>
     <div id="sections"></div>
-    <p class="empty" id="emptyState">🔭 一致するリンクが見つかりません。別のキーワードで探してみましょう。</p>
+    <p class="empty" id="emptyState">🔭 一致するリンクがありません。別のキーワードで探すか、「整理」から追加できます。</p>
   </main>
 
   <dialog id="linkDialog" aria-labelledby="linkDialogTitle">
@@ -1099,22 +1212,22 @@
         <div class="tag-row"></div>
       </div>
       <div class="card-actions">
-        <button class="mini-button favorite-button" type="button" title="お気に入り" aria-label="お気に入り">
+        <button class="mini-button favorite-button manage-only" type="button" title="お気に入り" aria-label="お気に入り">
           <i data-lucide="star"></i>
         </button>
-        <button class="mini-button move-up-button" type="button" title="上へ移動" aria-label="上へ移動">
+        <button class="mini-button move-up-button manage-only" type="button" title="上へ移動" aria-label="上へ移動">
           <i data-lucide="chevron-up"></i>
         </button>
-        <button class="mini-button edit-button" type="button" title="編集" aria-label="編集">
+        <button class="mini-button edit-button manage-only" type="button" title="編集" aria-label="編集">
           <i data-lucide="pencil"></i>
         </button>
-        <button class="mini-button move-down-button" type="button" title="下へ移動" aria-label="下へ移動">
+        <button class="mini-button move-down-button manage-only" type="button" title="下へ移動" aria-label="下へ移動">
           <i data-lucide="chevron-down"></i>
         </button>
         <a class="mini-button open-button" target="_blank" rel="noopener noreferrer" title="開く" aria-label="開く">
           <i data-lucide="external-link"></i>
         </a>
-        <button class="mini-button danger delete-button" type="button" title="削除" aria-label="削除">
+        <button class="mini-button danger delete-button manage-only" type="button" title="削除" aria-label="削除">
           <i data-lucide="trash-2"></i>
         </button>
       </div>
@@ -1254,6 +1367,7 @@
     ];
 
     const storageKey = "quiet-links-services-v1";
+    const homeCategoryLabel = "ホーム";
     const allCategoryLabel = "すべて";
     const defaultCategoryLabel = "未分類";
     const sectionsEl = document.querySelector("#sections");
@@ -1299,10 +1413,13 @@
     const noticeMessage = document.querySelector("#noticeMessage");
     const greetingTextEl = document.querySelector("#greetingText");
     const greetingEmojiEl = document.querySelector("#greetingEmoji");
+    const manageButton = document.querySelector("#manageButton");
+    const searchHelpEl = document.querySelector("#searchHelp");
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     let services = loadServices();
-    let activeCategory = allCategoryLabel;
+    let activeCategory = homeCategoryLabel;
+    let firstVisibleService = null;
     let editingServiceId = null;
     let renamingCategory = null;
     let confirmResolver = null;
@@ -1315,6 +1432,13 @@
     setInterval(updateClock, 1000 * 30);
 
     searchInput.addEventListener("input", () => render());
+    searchInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" || !firstVisibleService) return;
+      event.preventDefault();
+      recordServiceOpen(firstVisibleService.id);
+      window.open(firstVisibleService.url, "_blank", "noopener,noreferrer");
+    });
+    manageButton.addEventListener("click", toggleManageMode);
     addButton.addEventListener("click", () => openDialog());
     exportButton.addEventListener("click", exportServices);
     importButton.addEventListener("click", () => importFile.click());
@@ -1360,7 +1484,7 @@
         ? services.find((item) => item.id === editingServiceId)
         : null;
       if (isReservedCategoryName(categoryField.value)) {
-        categoryField.setCustomValidity("「すべて」は全件表示用のため、カテゴリ名には使えません。");
+        categoryField.setCustomValidity("「ホーム」と「すべて」は画面表示用のため、カテゴリ名には使えません。");
         categoryField.reportValidity();
         return;
       }
@@ -1375,7 +1499,9 @@
         category,
         tags: splitTags(tagsField.value),
         custom: currentService ? currentService.custom === true : true,
-        favorite: currentService ? currentService.favorite === true : false
+        favorite: currentService ? currentService.favorite === true : false,
+        openCount: currentService ? currentService.openCount : 0,
+        lastOpenedAt: currentService ? currentService.lastOpenedAt : ""
       };
 
       services = editingServiceId
@@ -1385,7 +1511,7 @@
       form.reset();
       dialog.close();
       editingServiceId = null;
-      activeCategory = service.category;
+      activeCategory = service.favorite ? homeCategoryLabel : service.category;
       render();
     });
 
@@ -1402,6 +1528,26 @@
     function saveServices() {
       services = sanitizeServices(services);
       writeStorage(storageKey, JSON.stringify(services));
+    }
+
+    function recordServiceOpen(id) {
+      const openedAt = new Date().toISOString();
+      services = services.map((service) => service.id === id
+        ? { ...service, openCount: (service.openCount || 0) + 1, lastOpenedAt: openedAt }
+        : service);
+      saveServices();
+      setTimeout(() => render(), 0);
+    }
+
+    function toggleManageMode() {
+      const isManaging = document.body.classList.toggle("manage-mode");
+      manageButton.setAttribute("aria-pressed", String(isManaging));
+      manageButton.setAttribute("aria-label", isManaging ? "整理を完了" : "リンクを整理");
+      manageButton.querySelector(".button-label").textContent = isManaging ? "完了" : "整理";
+      showNotice(isManaging
+        ? "整理モード：星付け・編集・並べ替えができます。"
+        : "整理を終えました。いつもの画面に戻ります。");
+      refreshIcons();
     }
 
     function readStorage(key) {
@@ -1454,11 +1600,17 @@
         tags: Array.isArray(item.tags)
           ? item.tags.map((tag) => cleanText(tag, 32)).filter(Boolean).slice(0, 8)
           : [],
-        favorite: item.favorite === true
+        favorite: item.favorite === true,
+        openCount: Number.isFinite(Number(item.openCount)) ? Math.max(0, Math.floor(Number(item.openCount))) : 0,
+        lastOpenedAt: isValidDateString(item.lastOpenedAt) ? item.lastOpenedAt : ""
       };
 
       if (item.custom === true) service.custom = true;
       return service;
+    }
+
+    function isValidDateString(value) {
+      return typeof value === "string" && value && Number.isFinite(Date.parse(value));
     }
 
     function cleanText(value, maxLength) {
@@ -1468,11 +1620,11 @@
 
     function normalizeCategoryName(value) {
       const category = cleanText(value, 40);
-      return category && category !== allCategoryLabel ? category : defaultCategoryLabel;
+      return category && !isReservedCategoryName(category) ? category : defaultCategoryLabel;
     }
 
     function isReservedCategoryName(value) {
-      return cleanText(value, 40) === allCategoryLabel;
+      return [allCategoryLabel, homeCategoryLabel].includes(cleanText(value, 40));
     }
 
     function createServiceId() {
@@ -1564,9 +1716,11 @@
       const query = searchInput.value.trim();
       const searchTokens = getSearchTokens(query);
       const categories = getCategories();
-      if (!categories.includes(activeCategory)) activeCategory = allCategoryLabel;
+      if (activeCategory !== homeCategoryLabel && !categories.includes(activeCategory)) {
+        activeCategory = homeCategoryLabel;
+      }
 
-      renderTabs(categories);
+      renderTabs([homeCategoryLabel, ...categories]);
       renderQuickLinks();
       renderCategoryOptions(categories);
 
@@ -1577,32 +1731,64 @@
           service
         }))
         .filter(({ service, score }) => {
-          const categoryMatch = activeCategory === allCategoryLabel || service.category === activeCategory;
+          const categoryMatch = query
+            || activeCategory === homeCategoryLabel
+            || activeCategory === allCategoryLabel
+            || service.category === activeCategory;
           return categoryMatch && (searchTokens.length === 0 || score > 0);
         })
         .sort((a, b) => searchTokens.length > 0 ? b.score - a.score || a.index - b.index : a.index - b.index)
         .map(({ service }) => service);
 
-      const grouped = groupByCategory(filtered);
+      const grouped = query
+        ? [["検索結果", filtered]]
+        : activeCategory === homeCategoryLabel
+          ? getHomeGroups()
+          : groupByCategory(filtered);
       sectionsEl.classList.toggle("is-animated", animate);
       sectionsEl.replaceChildren();
       let cardIndex = 0;
+      firstVisibleService = grouped[0]?.[1]?.[0] || null;
+
+      if (!query && activeCategory === homeCategoryLabel) {
+        const note = document.createElement("p");
+        note.className = "home-note";
+        const icon = document.createElement("i");
+        icon.dataset.lucide = "sparkles";
+        note.append(icon, document.createTextNode("リンクを開くほど「最近使った」が育ち、次の移動が速くなります。"));
+        sectionsEl.append(note);
+      }
 
       grouped.forEach(([category, items]) => {
+        if (items.length === 0) return;
         const section = document.createElement("section");
-        section.className = "section";
+        const isHomeSection = !query && activeCategory === homeCategoryLabel;
+        section.className = `section${isHomeSection ? " is-home-section" : ""}`;
 
         const sectionHead = document.createElement("div");
         sectionHead.className = "section-head";
         const titleGroup = document.createElement("div");
+        if (isHomeSection) {
+          const kicker = document.createElement("p");
+          kicker.className = "section-kicker";
+          kicker.textContent = category === "最近使った" ? "History" : "Daily";
+          titleGroup.append(kicker);
+        }
         const sectionTitle = document.createElement("h2");
         sectionTitle.className = "section-title";
         sectionTitle.textContent = category;
         const sectionSubtitle = document.createElement("p");
         sectionSubtitle.className = "section-subtitle";
-        sectionSubtitle.textContent = `${items.length}件`;
+        sectionSubtitle.textContent = category === "いつものリンク"
+          ? "星を付けたリンク"
+          : category === "まずはここから"
+            ? "「整理」から星を付けるとホームを自分用にできます"
+          : category === "最近使った"
+            ? "直近に開いた順"
+            : `${items.length}件`;
         titleGroup.append(sectionTitle, sectionSubtitle);
-        sectionHead.append(titleGroup, createCategoryActions(category));
+        sectionHead.append(titleGroup);
+        if (!query && !isHomeSection) sectionHead.append(createCategoryActions(category));
 
         const grid = document.createElement("div");
         grid.className = "grid";
@@ -1616,10 +1802,28 @@
         sectionsEl.append(section);
       });
 
-      setMetric(visibleCountEl, filtered.length, animate);
+      setMetric(visibleCountEl, services.length, animate);
       setMetric(favoriteCountEl, services.filter((service) => service.favorite).length, animate);
-      emptyStateEl.classList.toggle("is-visible", filtered.length === 0);
+      const visibleItems = grouped.reduce((total, [, items]) => total + items.length, 0);
+      emptyStateEl.classList.toggle("is-visible", visibleItems === 0);
+      searchHelpEl.textContent = query && firstVisibleService
+        ? `Enterで「${firstVisibleService.name}」を開く`
+        : "名前・カテゴリ・タグから検索できます";
       refreshIcons();
+    }
+
+    function getHomeGroups() {
+      const byUsage = (a, b) => (b.openCount || 0) - (a.openCount || 0)
+        || Date.parse(b.lastOpenedAt || 0) - Date.parse(a.lastOpenedAt || 0)
+        || services.indexOf(a) - services.indexOf(b);
+      const favorites = services.filter((service) => service.favorite).sort(byUsage).slice(0, 8);
+      const primaryTitle = favorites.length > 0 ? "いつものリンク" : "まずはここから";
+      const primary = favorites.length > 0 ? favorites : services.slice(0, 6);
+      const recent = services
+        .filter((service) => service.lastOpenedAt && !service.favorite)
+        .sort((a, b) => Date.parse(b.lastOpenedAt) - Date.parse(a.lastOpenedAt))
+        .slice(0, 4);
+      return [[primaryTitle, primary], ["最近使った", recent]];
     }
 
     function createCard(service, searchTokens = []) {
@@ -1649,6 +1853,10 @@
       editButton.setAttribute("aria-label", `${service.name}を編集`);
       deleteButton.hidden = !service.custom;
       deleteButton.setAttribute("aria-label", `${service.name}を削除`);
+
+      [iconLink, cardLink, openButton].forEach((link) => {
+        link.addEventListener("click", () => recordServiceOpen(service.id));
+      });
 
       const tagRow = node.querySelector(".tag-row");
       [hostname, ...(service.tags || [])].slice(0, 4).forEach((tag) => {
@@ -1690,7 +1898,7 @@
 
     function createCategoryActions(category) {
       const actions = document.createElement("div");
-      actions.className = "section-actions";
+      actions.className = "section-actions manage-only";
       const categories = getCategories().filter((item) => item !== allCategoryLabel);
       const index = categories.indexOf(category);
 
@@ -1759,7 +1967,7 @@
       }
 
       if (isReservedCategoryName(nextName)) {
-        categoryNameField.setCustomValidity("「すべて」は全件表示用のため、カテゴリ名には使えません。");
+        categoryNameField.setCustomValidity("「ホーム」と「すべて」は画面表示用のため、カテゴリ名には使えません。");
         categoryNameField.reportValidity();
         return;
       }
@@ -1886,7 +2094,7 @@
         saveServices();
         clearUndo();
         searchInput.value = "";
-        activeCategory = allCategoryLabel;
+        activeCategory = homeCategoryLabel;
         render();
         showNotice("リンク一覧をインポートしました。");
       } catch {
@@ -1955,9 +2163,11 @@
     function renderTabs(categories) {
       tabsEl.replaceChildren();
       categories.forEach((category) => {
-        const count = category === allCategoryLabel
-          ? services.length
-          : services.filter((service) => service.category === category).length;
+        const count = category === homeCategoryLabel
+          ? services.filter((service) => service.favorite).length
+          : category === allCategoryLabel
+            ? services.length
+            : services.filter((service) => service.category === category).length;
         const button = document.createElement("button");
         button.className = "tab";
         button.type = "button";
@@ -1970,6 +2180,7 @@
         button.append(label, countEl);
         button.addEventListener("click", () => {
           activeCategory = category;
+          searchInput.value = "";
           render({ animate: true });
         });
         tabsEl.append(button);
@@ -1980,6 +2191,8 @@
       quickRowEl.replaceChildren();
       services
         .filter((service) => service.favorite)
+        .sort((a, b) => (b.openCount || 0) - (a.openCount || 0)
+          || Date.parse(b.lastOpenedAt || 0) - Date.parse(a.lastOpenedAt || 0))
         .slice(0, 6)
         .forEach((service) => {
           const hostname = getHostname(service.url);
@@ -1989,6 +2202,7 @@
           link.target = "_blank";
           link.rel = "noopener noreferrer";
           link.setAttribute("aria-label", `${service.name}を開く`);
+          link.addEventListener("click", () => recordServiceOpen(service.id));
           const img = createFaviconImage(hostname, 32);
           const label = document.createElement("span");
           label.textContent = service.name;
@@ -2039,7 +2253,9 @@
       } else {
         const categories = getCategories().filter((category) => category !== allCategoryLabel);
         const fallbackCategory = categories.includes("仕事") ? "仕事" : categories[0] || defaultCategoryLabel;
-        categoryField.value = activeCategory === allCategoryLabel ? fallbackCategory : activeCategory;
+        categoryField.value = [homeCategoryLabel, allCategoryLabel].includes(activeCategory)
+          ? fallbackCategory
+          : activeCategory;
       }
 
       dialog.showModal();
